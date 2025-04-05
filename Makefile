@@ -21,6 +21,8 @@ CLUSTER ?= acceptance
 CERT_MANAGER_VERSION ?= v1.1.1
 KUBE_RBAC_PROXY_VERSION ?= v0.11.0
 SHELLCHECK_VERSION ?= 0.8.0
+GOCACHE ?= $(shell go env GOCACHE)
+GOLANGCI_LINT_CACHE ?= $(shell go env GOCACHE | sed 's/go-build/golangci-lint/')
 
 # Produce CRDs that work back to Kubernetes 1.11 (no version conversion)
 CRD_OPTIONS ?= "crd:generateEmbeddedObjectMeta=true,allowDangerousTypes=true"
@@ -68,7 +70,9 @@ endif
 all: manager
 
 lint:
-	docker run --rm -v $(PWD):/app -w /app golangci/golangci-lint:v2.0.2 golangci-lint run
+	docker run --rm -v $(PWD):/app -w /app \
+	-v $(GOCACHE):/root/.cache/go-build -v $(GOLANGCI_LINT_CACHE):/root/.cache/golangci-lint \
+	golangci/golangci-lint:v2.0.2 golangci-lint run -v
 
 GO_TEST_ARGS ?= -short
 
